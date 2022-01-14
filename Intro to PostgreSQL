@@ -1,0 +1,113 @@
+-- Select specific columns from a table
+-- GOAL:  product id and name as a list
+SELECT
+	product_id,  -- commas separate columns in a list
+	product_name -- no comma before the FROM clause
+FROM products
+;
+SELECT
+country,
+salesperson
+FROM regions
+;
+- Using DISTINCT to remove any composite duplicates
+-- GOAL:  a list of product categories and subcategories with no dups
+SELECT DISTINCT -- finds the unique values for the columns in the SELECT
+	category,
+	sub_category
+FROM products
+ORDER BY category DESC, sub_category -- sorts the data on the columns select; default is Ascending (ASC) use DESC to sort desceding
+;
+
+-- Using WHERE to filter rows
+-- GOAL:  a list of subcategories  that are in Technology only
+SELECT DISTINCT
+	category,
+	sub_category
+FROM products
+WHERE category = 'Technology'  -- filters the rows to only pull what is in quotes
+ORDER BY category DESC, sub_category
+;
+-- Using COUNT to find all rows, to find rows for a non-null values, find distinct values
+-- used to validate results
+SELECT
+	COUNT(*) AS all_rows,
+	COUNT(postal_code) AS all_postals_not_null,
+	COUNT(DISTINCT postal_code) AS unique_count_of_postals
+FROM orders
+;
+-- returns 605; extra row is null value
+SELECT DISTINCT
+postal_code
+FROM orders
+order by postal_code;
+-- Using WHERE operators
+-- Find all counties for regions not in EMEA
+SELECT
+	country,
+	region
+FROM regions
+WHERE region <> 'EMEA' -- finds regions not in EMEA; can use != instead of <>
+ORDER BY region
+;
+-- Using WHERE operators
+-- Find orders that have $90 or more in profit
+SELECT
+	order_id,
+	profit
+FROM orders
+WHERE profit > 90  -- no quotes when using numerics
+ORDER BY profit  -- tests WHERE criteria
+;
+-- Using WHERE operators AND & OR
+-- All countries and regions in the Americas and APAC that are not assigned to Ann Andreadi
+SELECT *
+FROM regions
+WHERE (region = 'Americas' OR region = 'APAC') -- runs what is in () first
+AND salesperson <> 'Anna Andreadi'
+ORDER BY salesperson
+;
+-- Using WHERE operators IN
+-- All countries and regions in the Americas and APAC that are not assigned to Ann Andreadi
+SELECT *
+FROM regions
+WHERE region IN ('Americas','APAC') -- alternative to OR when evaluating same column for list of values
+AND salesperson <> 'Anna Andreadi'
+ORDER BY salesperson
+;
+-- Using WHERE operators NOT IN
+-- All countries and regions in the Americas and APAC that are not assigned to Ann Andreadi
+SELECT *
+FROM regions
+WHERE region NOT IN ('Americas','APAC') -- everything not in the list when using NOT IN
+AND salesperson <> 'Anna Andreadi'
+ORDER BY salesperson
+;
+-- Using WHERE operators BETWEEN
+-- find products that have a cost to consumer >= $25 and <=$100
+SELECT
+	product_cost_to_consumer,
+	product_name
+FROM products
+WHERE product_cost_to_consumer BETWEEN 25 AND 100 -- pulls range including boundary values if in the data
+ORDER BY product_cost_to_consumer DESC -- test BETWEEN
+;
+-- find orders in date range for Sept 2016
+SELECT
+	order_date,
+	order_id
+FROM orders
+WHERE order_date BETWEEN '2016-09-01' AND '2016-09-30' -- dates are in quotes like a text field. format typically is YYYY-MM-DD
+ORDER BY order_date DESC
+;
+-- Using WHERE operators LIKE/ILIKE
+-- find all products that are calculators
+SELECT
+	product_name
+FROM products
+WHERE
+	-- product_name LIKE 'Calc%' -- % at the back = STARTS WITH
+	-- product_name LIKE '%Calculator' -- % at the front = ENDS WITH
+	-- product_name LIKE '%Calculator%' -- % at the front and back = CONTAINS
+	product_name ILIKE '%caLc%' -- ILIKE is LIKE but ignores the case sensitivity; no man left behind
+;
