@@ -1,0 +1,202 @@
+-- Using CASE 
+-- Classify Discounts 
+SELECT 
+	discount, -- use to test the CASE works
+	CASE 
+		WHEN discount = 1 THEN 'Free'   -- all 100% discounts are handled 1st
+		WHEN discount BETWEEN .25 AND 1 THEN 'High' 
+		WHEN discount = 0 THEN 'None'  -- no discounts are handled here
+		WHEN discount < .25 THEN 'Low'
+		ELSE 'NA'
+	END as discount_level
+FROM orders 
+;
+
+-- Using Aggregate functions in SQL
+SELECT 
+	COUNT(*) as counts_all_rows, 
+	COUNT(postal_code) as counts_all_non_null_postals, 
+	COUNT(DISTINCT postal_code) as counts_all_unique_postals,
+	SUM(sales) as total_sales, 
+	AVG(profit) as avg_profit,
+	MIN(sales) as lowest_sales_transaction, 
+	MAX(sales) as largest_sales_transaction
+FROM orders
+; 
+
+-- Calculate the % of orders with a high discount level
+SELECT
+ROUND(
+AVG(
+	CASE WHEN discount > .25 THEN 1  -- sets the true/false flag for high discount
+	ELSE 0 END 
+	) * 100 -- * 100 moves the decimal so we can see as a percent
+	,2) -- round ,2 rounds the average to 2 decimal places
+	as discount_level  
+FROM orders; 
+
+-- Customer Count by Segment
+-- Using GROUP BY and HAVING
+-- Find the # of customers by segment; the choose only segments with a count > 300 
+SELECT 
+	segment, -- dimension or category we are aggregating to; similar to rows in a Excel pivot table
+	COUNT(*) 
+FROM customers
+GROUP BY segment
+HAVING COUNT(*) > 300 -- limits the aggregated results to only segments with more than 300 customers
+;
+
+-- Solo Exercise
+SELECT
+	category, -- dimension or category we are aggregating to; similar to rows in a Excel pivot table
+	COUNT(*)
+FROM products
+GROUP BY category
+;
+
+-- Using CASE with GROUP BY 
+SELECT 
+	CASE 
+		WHEN discount = 1 THEN 'Free'   -- all 100% discounts are handled 1st
+		WHEN discount BETWEEN .25 AND 1 THEN 'High' 
+		WHEN discount = 0 THEN 'None'  -- no discounts are handled here
+		WHEN discount < .25 THEN 'Low'
+		ELSE 'NA'
+	END as discount_level,  -- column 1 in the SELECT
+	COUNT(*) as num_sales,  -- column 2 in the SELECT 
+	SUM(sales) as total_sales  -- column 3 in the SELECT
+FROM orders 
+GROUP BY 1 -- groups by the CASE statement
+ORDER BY 3 -- sorts by the SUM(sales) ascending
+;
+
+
+-- Using Round
+SELECT 177.3589; 
+SELECT ROUND(177.3589,2);-- positive number in the 2nd arguement round to the right of the decimal
+SELECT ROUND(177.3589,-2);-- negative number in the 2nd arguement round to the left of the decimal
+
+-- Using math with integers and floats
+SELECT 3+5; 
+SELECT 3*9; 
+SELECT 5/3; 
+-- Dividing by integers using CAST
+SELECT 5/CAST(3 as float); 
+SELECT 5/3::decimal ;  -- double colon is CAST shorthand; Candace preference
+SELECT 5/(1.0*3); 
+
+SELECT 
+	profit,
+	((profit * 1.1) / sales)::numeric(10,2) as profit_margin_with_increase -- casted as a 2 decimal place numeric
+FROM orders
+LIMIT 5;
+
+select
+	ship_mode, 
+	sum(quantity) as qty
+from orders
+group by ship_mode
+;
+
+-- how many orders have 3+ items returned
+SELECT
+	COUNT(order_id) as order_count -- counts the orders
+FROM returns --- where to look for the data
+WHERE return_quantity >=3 --filters to order line with only 3+
+; 
+
+-- how many orders have 3+ items returned
+SELECT
+	reason_returned,
+	COUNT(order_id) as order_count -- counts the orders
+FROM returns --- where to look for the data
+WHERE return_quantity >=3 --filters to order line with only 3+
+GROUP BY reason_returned
+; 
+
+-- Concat Function
+-- Combine category and subcategory into 1 column
+SELECT DISTINCT 
+	category, 
+	sub_category,
+	CONCAT(category,' - ',sub_category) as concat_cat,
+	category || ' - ' || sub_category as concat_pipes -- used by developers often
+FROM products
+;
+
+-- LENGTH Function
+-- counts the number of cahracters in a column/field
+SELECT DISTINCT 
+	LENGTH(category), 
+	LENGTH(sub_category),
+	LENGTH(category || ' - ' || sub_category) as concat_pipes -- used by developers often
+FROM products
+;
+
+-- LOWER/UPPER Function
+-- Use to cast values as upper or lower case
+SELECT DISTINCT 
+	category,
+	LOWER(category) as lower_cat,
+	UPPER(category) as upper_cat
+FROM products
+WHERE UPPER(category) LIKE '%OFFICE%'
+;
+
+-- LEFT/RIGHT Function
+-- Use to pull parts of a string
+SELECT DISTINCT 
+	category,
+	LEFT(category,3) as left_3_cat,
+	RIGHT(category,3) as right_3_cat
+FROM products
+;
+
+-- TRIM, LTRIM, RTRIM Function
+-- Use to remove leading or trailing spaces
+SELECT DISTINCT 
+	category,
+	'                          ' || category || '                          'as cat_space,
+	TRIM('                          ' || category || '                          ') as trim_both,
+	LTRIM('                          ' || category || '                          ') as left_trim,
+	RTRIM('                          ' || category || '                          ') as right_trim
+FROM products
+;
+
+-- STRPOS fins the position of a specified character
+-- Find the comma in product name and return it's number of characters fromthe left
+SELECT 
+	product_name, 
+	STRPOS(product_name, ',') as postion_of_comma, 
+	SUBSTRING(product_name, 1, 21) as one_to_21, 
+	SUBSTRING(product_name, 1, STRPOS(product_name, ',') ) as pull_all_to_comma, 
+	CASE WHEN STRPOS(product_name, ',') <> 0 THEN 
+			REPLACE(SUBSTRING(product_name, 1, STRPOS(product_name, ',') ),',','')  -- replace comma with blank
+			ELSE product_name
+	END as product
+FROM products
+; 
+
+-- Date Functions
+
+SELECT 
+	order_date, 
+	ship_date,
+	CURRENT_DATE as today_on_system, 
+	AGE(ship_date,order_date ) as date_difference_days_to_ship,
+	DATE(ship_date) - DATE(order_date) as days_to_ship_integer, 
+	order_date::date as order_day_NTS
+FROM orders
+WHERE order_date BETWEEN '2016-09-01' AND '2016-09-30' -- dates typically stored as YYYY-MM-DD
+;
+
+-- Aggregated Date Functions
+
+SELECT 
+	DATE_TRUNC('month',order_date) as order_month, 
+	TO_CHAR(order_date, 'YYYY-MM') as month_year_name,
+	SUM(sales) as total_sales
+FROM orders
+GROUP BY 1,2
+ORDER BY 1,2
+;
