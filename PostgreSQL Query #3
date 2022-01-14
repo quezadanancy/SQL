@@ -1,0 +1,121 @@
+-- Inner Join
+-- Provide a list of orders with return dates and reason
+SELECT
+	orders.order_id,  -- <table name>.<column name> so we know what table to read from
+	returns.return_date,
+	orders.order_date,
+	returns.reason_returned,
+	SUM(orders.sales) AS total_sales
+FROM orders
+INNER JOIN returns ON orders.order_id = returns.order_id
+	-- the ON clause is when we define how to related the 2 tables using keys
+GROUP BY 1,2,3,4  -- this is the columns as listed in the select
+;
+-- Inner Join using Aliases
+-- Provide a list of orders with return dates and reason
+SELECT
+	ord.order_id,
+	rtn.return_date,
+	ord.order_date,
+	rtn.reason_returned,
+	SUM(ord.sales) AS total_sales
+FROM orders ord
+INNER JOIN returns rtn ON ord.order_id = rtn.order_id
+GROUP BY 1,2,3,4  -- this is the columns as listed in the select
+;
+-- Inner Join for 2+ tables
+-- Provide a list of orders with return dates and reason and customer name
+SELECT
+	ord.order_id,
+	rtn.return_date,
+	ord.order_date,
+	rtn.reason_returned,
+	cst.customer_name,
+	SUM(ord.sales) AS total_sales
+FROM orders ord
+INNER JOIN returns rtn ON ord.order_id = rtn.order_id
+JOIN customers cst  -- JOIN is the same as INNER JOIN
+	USING(customer_id)  -- USING is  the same as ON when the column is named EXACTLY same in both tables
+						-- Alternative: ON orders.customer_id = customers.customer_id
+GROUP BY 1,2,3,4,5  -- this is the columns as listed in the select
+;
+-- Inner Join
+-- Provide a list of orders with return dates and reason
+SELECT
+	orders.order_id,  -- <table name>.<column name> so we know what table to read from
+	returns.return_date,
+	orders.order_date,
+	returns.reason_returned,
+	SUM(orders.sales) AS total_sales
+FROM orders
+INNER JOIN returns ON orders.order_id = returns.order_id
+	-- the ON clause is when we define how to related the 2 tables using keys
+GROUP BY 1,2,3,4  -- this is the columns as listed in the select
+;
+-- LEFT Join
+-- Provide a list of ALL orders and return dates and reason if available
+SELECT
+	orders.order_id,  -- <table name>.<column name> so we know what table to read from
+	returns.return_date,
+	orders.order_date,
+	returns.reason_returned,
+	SUM(orders.sales) AS total_sales
+FROM orders
+LEFT JOIN returns ON orders.order_id = returns.order_id -- LEFT returns ALL in the 1st table and what matches in the second
+	-- the ON clause is when we define how to related the 2 tables using keys
+GROUP BY 1,2,3,4  -- this is the columns as listed in the select
+;
+-- LEFT Join
+-- Provide a list of ALL orders and return dates and reason if available and the country and region they are from
+SELECT
+	orders.order_id,  -- <table name>.<column name> so we know what table to read from
+	returns.return_date,
+	orders.order_date,
+	returns.reason_returned,
+	regions.region,
+	regions.country,
+	SUM(orders.sales) AS total_sales
+FROM orders
+LEFT JOIN returns ON orders.order_id = returns.order_id -- LEFT returns ALL in the 1st table and what matches in the second
+	-- the ON clause is when we define how to related the 2 tables using keys
+LEFT JOIN regions ON orders.region_id = regions.region_id -- sets the link between orders and regions
+GROUP BY 1,2,3,4,5,6  -- this is the columns as listed in the select
+;
+-- UNION
+SELECT region, sub_region
+FROM  regions
+WHERE sub_region = 'Central United States'
+UNION -- removes any composite duplicates; similar to DISTINCT
+SELECT region, sub_region
+FROM  regions
+WHERE sub_region = 'Caribbean'
+ORDER BY sub_region DESC
+;
+-- UNION ALL
+SELECT region, sub_region
+FROM  regions
+WHERE sub_region = 'Central United States'
+UNION ALL -- allows any composite duplicates; similar to DISTINCT
+SELECT region, sub_region
+FROM  regions
+WHERE sub_region = 'Caribbean'
+ORDER BY sub_region DESC
+;
+-- UNION Example
+SELECT 'week1' as week_number, fy, pd, store_name, week1 as weekly_total
+FROM fy17
+WHERE store_name = 'DALLAS'
+UNION
+SELECT 'week2' as week_number, fy, pd, store_name, week2 as weekly_total
+FROM fy17
+WHERE store_name = 'DALLAS'
+UNION
+SELECT 'week1' as week_number, fy, pd, store_name, week1 as weekly_total
+FROM fy18
+WHERE store_name = 'DALLAS'
+UNION
+SELECT 'week2' as week_number, fy, pd, store_name, week2 as weekly_total
+FROM fy18
+WHERE store_name = 'DALLAS'
+ORDER BY 1
+;
